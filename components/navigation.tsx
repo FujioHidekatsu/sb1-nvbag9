@@ -1,65 +1,69 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/mode-toggle";
-import { MessagesSquare, Plus, LogOut } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { useEffect, useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from '@/components/ui/button'
+import { ModeToggle } from '@/components/mode-toggle'
+import { MessagesSquare, Plus, LogOut } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import { useEffect, useState } from 'react'
+import { useToast } from '@/hooks/use-toast'
 
 export function Navigation() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter()
+  const { toast } = useToast()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setIsAuthenticated(!!session);
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        setIsAuthenticated(!!session)
       } catch (error) {
-        console.error('Auth check failed:', error);
+        console.error('Auth check failed:', error)
         toast({
-          title: "Error",
-          description: "Failed to check authentication status",
-          variant: "destructive",
-        });
+          title: 'Error',
+          description: 'Failed to check authentication status',
+          variant: 'destructive',
+        })
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    checkAuth();
+    checkAuth()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session)
+    })
 
-    return () => subscription.unsubscribe();
-  }, [toast]);
+    return () => subscription.unsubscribe()
+  }, [toast])
 
   const handleSignOut = async () => {
     try {
-      setIsLoading(true);
-      await supabase.auth.signOut();
-      router.push("/auth");
+      setIsLoading(true)
+      await supabase.auth.signOut()
+      router.push('/auth')
     } catch (error) {
-      console.error('Sign out failed:', error);
+      console.error('Sign out failed:', error)
       toast({
-        title: "Error",
-        description: "Failed to sign out",
-        variant: "destructive",
-      });
+        title: 'Error',
+        description: 'Failed to sign out',
+        variant: 'destructive',
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   if (isLoading) {
-    return null;
+    return null
   }
 
   return (
@@ -68,9 +72,9 @@ export function Navigation() {
         <nav className="flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <MessagesSquare className="h-6 w-6" />
-            <span className="text-xl font-bold">Q&A Manager</span>
+            <span className="text-xl font-bold">Q&A ボックス</span>
           </Link>
-          
+
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
               <>
@@ -80,9 +84,9 @@ export function Navigation() {
                     New Question
                   </Link>
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={handleSignOut}
                   disabled={isLoading}
                 >
@@ -99,5 +103,5 @@ export function Navigation() {
         </nav>
       </div>
     </header>
-  );
+  )
 }
