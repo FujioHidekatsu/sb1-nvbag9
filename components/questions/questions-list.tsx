@@ -19,31 +19,40 @@ interface Question {
 }
 
 export function QuestionsList() {
+  console.log('QuestionsList')
   const [questions, setQuestions] = useState<Question[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchQuestions() {
       try {
+        // 現在のユーザーのセッションを取得
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession()
+        if (sessionError) throw sessionError
+
+        if (!session) {
+          setError('ログインしていません。')
+          setIsLoading(false)
+          return
+        }
+        const userId = session.user.id
+        // ユーザーIDに基づいて質問をフィルタリング
         const { data, error } = await supabase
           .from('questions')
-          .select(
-            `
-            *,
-            profiles (
-              username
-            )
-          `
-          )
+          .select('*')
+          .eq('user_id', userId)
           .order('created_at', { ascending: false })
 
-        if (error) {
-          throw error
-        }
-
+        if (error) throw error
+        console.log('Fetched questions:', data)
         setQuestions(data || [])
       } catch (error) {
         console.error('Error fetching questions:', error)
+        setError('質問の取得中にエラーが発生しました。')
       } finally {
         setIsLoading(false)
       }
@@ -56,6 +65,9 @@ export function QuestionsList() {
     return <div>Loading questions...</div>
   }
 
+  if (error) {
+    return <div className="text-red-500">{error}</div>
+  }
   if (questions.length === 0) {
     return (
       <div className="text-center py-12">
@@ -80,10 +92,10 @@ export function QuestionsList() {
               </CardTitle>
             </Link>
             <div className="text-sm text-muted-foreground">
-              Asked by {question.profiles?.username || 'Anonymous'}{' '}
               {formatDistanceToNow(new Date(question.created_at), {
                 addSuffix: true,
               })}
+              に投稿
             </div>
           </CardHeader>
           <CardContent>
